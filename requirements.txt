@@ -1,2 +1,5 @@
 flask
 flask-restx
+torch
+torchvision
+tqdm

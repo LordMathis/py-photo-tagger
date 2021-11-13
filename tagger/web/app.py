@@ -1,6 +1,4 @@
 from flask import Flask
-
-from flask import Flask
 from flask_restx import Api, Resource, reqparse
 from werkzeug.datastructures import FileStorage
 
