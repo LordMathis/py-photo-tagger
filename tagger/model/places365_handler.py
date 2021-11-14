@@ -6,6 +6,7 @@ from torch.nn import functional
 from torchvision import models, transforms
 
 from tagger import MODELS_BASE_PATH
+from tagger.model.abstract_handler import AbstractHandler
 
 
 def load_model(model_name):
@@ -25,10 +26,7 @@ def load_model(model_name):
 def load_classes():
     # load the class label
     file_name = os.path.join(MODELS_BASE_PATH, 'categories_places365.txt')
-    if not os.access(file_name, os.W_OK):
-        synset_url = 'https://raw.githubusercontent.com/csailvision/places365/master/categories_places365.txt'
-        os.system('wget ' + synset_url)
-    classes = list()
+    classes = []
     with open(file_name) as class_file:
         for line in class_file:
             classes.append(line.strip().split(' ')[0][3:])
@@ -44,12 +42,13 @@ centre_crop = transforms.Compose([
 ])
 
 
-class Places365Handler:
+class Places365Handler(AbstractHandler):
 
-    def __init__(self, model_name: str):
-        self._model_arch: str = model_name.split('_')[0]
-        self._model_fn: str = model_name
-        self._model = load_model(model_name)
+    def __init__(self, model_filename: str):
+        self._model_arch: str = model_filename.split('_')[0]
+        self._model_name: str = model_filename.split('/')[-1]
+        self._model_fn: str = model_filename
+        self._model = load_model(model_filename)
         self._classes = load_classes()
 
     def predict(self, image_data):
@@ -59,7 +58,9 @@ class Places365Handler:
         h_x = functional.softmax(logit, 1).data.squeeze()
         probs, idx = h_x.sort(0, True)
 
-        print('{} prediction:'.format(self._model_arch))
-        # output the prediction
+        res = {self._model_name: {}}
+
         for i in range(0, 5):
-            print('{:.3f} -> {}'.format(probs[i], self._classes[idx[i]]))
+            res[self._model_name][self._classes[idx[i]]] = '{:.3f}'.format(probs[i])
+
+        return res

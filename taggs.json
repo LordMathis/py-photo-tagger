@@ -1,0 +1,20 @@
+{
+    "./data/IMG_20190215_143254591.jpg": {
+        "resnet50_places365.pth.tar": {
+            "yard": "0.013",
+            "arch": "0.012",
+            "museum/indoor": "0.011",
+            "building_facade": "0.011",
+            "plaza": "0.010"
+        }
+    },
+    "./data/2048-1536-max.jpg": {
+        "resnet50_places365.pth.tar": {
+            "arch": "0.013",
+            "building_facade": "0.012",
+            "plaza": "0.012",
+            "museum/indoor": "0.011",
+            "campus": "0.010"
+        }
+    }
+}
