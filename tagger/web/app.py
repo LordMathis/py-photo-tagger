@@ -5,13 +5,6 @@ from werkzeug.datastructures import FileStorage
 app = Flask(__name__)
 api = Api(app)
 
-
-@api.route('/hello')
-class HelloWorld(Resource):
-    def get(self):
-        return {'hello': 'world'}
-
-
 upload_parser = reqparse.RequestParser()
 upload_parser.add_argument('image', location='files',
                            type=FileStorage, required=True)
@@ -20,9 +13,15 @@ upload_parser.add_argument('image', location='files',
 @api.route('/upload')
 @api.expect(upload_parser)
 class ImageUpload(Resource):
-    def post(self):
+    def post(self, model_name: str):
         args = upload_parser.parse_args()
         image_file = args['image']
         data = image_file.read()
 
         return {"type": str(type(data)), "size": len(data)}
+
+
+@api.route('/export')
+class ExportTaggs(Resource):
+    def get(self):
+        pass

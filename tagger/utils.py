@@ -1,5 +1,7 @@
 import json
 
+import torch.cuda
+
 
 def read_json_file(filepath):
     with open(filepath) as json_data:
@@ -10,3 +12,7 @@ def read_json_file(filepath):
 def write_json_file(filepath, data):
     with open(filepath, 'w') as json_file:
         json_file.write(json.dumps(data, indent=4))
+
+
+def is_cuda_available():
+    return torch.cuda.is_available()

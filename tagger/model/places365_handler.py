@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 import torch
 from torch.autograd import Variable
@@ -6,26 +7,14 @@ from torch.nn import functional
 from torchvision import models, transforms
 
 from tagger import MODELS_BASE_PATH
-from tagger.model.abstract_handler import AbstractHandler
+from tagger.model.abstract_model_handler import AbstractModelHandler
+
+MODEL_BASE_NAME = 'places365.pth.tar'
 
 
-def load_model(model_name):
-    model_arch = model_name.split('_')[0]
-    model_fn = [os.path.join(dp, f) for dp, dn, filenames in os.walk(MODELS_BASE_PATH) for f in filenames if
-                f == model_name][0]
-
-    model = models.__dict__[model_arch](num_classes=365)
-
-    checkpoint = torch.load(model_fn, map_location=lambda storage, loc: storage)
-    state_dict = {str.replace(k, 'module.', ''): v for k, v in checkpoint['state_dict'].items()}
-    model.load_state_dict(state_dict)
-
-    return model
-
-
-def load_classes():
+def load_classes(classes_path):
     # load the class label
-    file_name = os.path.join(MODELS_BASE_PATH, 'categories_places365.txt')
+    file_name = os.path.join(classes_path, 'categories_places365.txt')
     classes = []
     with open(file_name) as class_file:
         for line in class_file:
@@ -42,18 +31,25 @@ centre_crop = transforms.Compose([
 ])
 
 
-class Places365Handler(AbstractHandler):
+class Places365Handler(AbstractModelHandler):
 
-    def __init__(self, model_filename: str):
-        self._model_arch: str = model_filename.split('_')[0]
-        self._model_name: str = model_filename.split('/')[-1]
-        self._model_fn: str = model_filename
-        self._model = load_model(model_filename)
-        self._classes = load_classes()
+    def __init__(self, model_path: str):
+        self._model_name: str = model_path.split('/')[-1]
+        self._model_arch: str = self._model_name.split('_')[0]
+        self._model_path: str = model_path
+        self._classes = load_classes(Path(model_path).parent.absolute())
 
     def predict(self, image_data):
-        # forward pass
+        if not self._model_loaded:
+            self._logger.warning("Model is not loaded.")
+            return None
+
         input_img = Variable(centre_crop(image_data).unsqueeze(0))
+
+        if torch.cuda.is_available():
+            input_img = input_img.to('cuda')
+            # self._model.to('cuda')
+
         logit = self._model.forward(input_img)
         h_x = functional.softmax(logit, 1).data.squeeze()
         probs, idx = h_x.sort(0, True)
@@ -64,3 +60,19 @@ class Places365Handler(AbstractHandler):
             res[self._model_name][self._classes[idx[i]]] = '{:.3f}'.format(probs[i])
 
         return res
+
+    def load(self):
+        if self._model_loaded:
+            return
+
+        model = models.__dict__[self._model_arch](num_classes=365)
+
+        checkpoint = torch.load(self._model_path, map_location=lambda storage, loc: storage)
+        state_dict = {str.replace(k, 'module.', ''): v for k, v in checkpoint['state_dict'].items()}
+        model.load_state_dict(state_dict)
+
+        if torch.cuda.is_available():
+            model.cuda()
+
+        self._model_loaded = True
+        self._model = model

@@ -1,19 +1,24 @@
-import os
-
-from PIL import Image
-
 from tagger import utils
-from tagger.model.places365_handler import Places365Handler
-from tagger.web.app import app
+from tagger.model.model_register import ModelRegister
 from tagger.worker import Worker
 
-places = Places365Handler('resnet50_places365.pth.tar')
+model_register = ModelRegister()
+model_register.find_all_models()
 
-json_data = utils.read_json_file('./taggs.json')
+json_data = None
+try:
+    json_data = utils.read_json_file('./taggs.json')
+except OSError:
+    pass
 
-worker = Worker(places, json_data)
-worker.start()
-worker.join()
+workers = []
+for model_handler in model_register.list_models():
+    worker = Worker(model_handler, json_data)
+    worker.start()
+    workers.append(worker)
+
+for worker in workers:
+    worker.join()
 
 # if __name__ == '__main__':
 #     app.run(debug=True)
