@@ -1,4 +1,8 @@
-from tagger import utils
+from torch.utils.data import DataLoader
+from torchvision import datasets
+
+from tagger import utils, DATA_BASE_PATH
+from tagger.dataset.photo_dataset import PhotoDataset
 from tagger.model.model_register import ModelRegister
 from tagger.worker import Worker
 
@@ -13,12 +17,12 @@ except OSError:
 
 workers = []
 for model_handler in model_register.list_models():
-    worker = Worker(model_handler, json_data)
+    dataset = PhotoDataset(model_handler.transform)
+    loader = DataLoader(dataset)
+
+    worker = Worker(model_handler, loader, json_data)
     worker.start()
     workers.append(worker)
 
 for worker in workers:
     worker.join()
-
-# if __name__ == '__main__':
-#     app.run(debug=True)

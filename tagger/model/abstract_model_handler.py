@@ -12,6 +12,8 @@ class AbstractModelHandler:
     _model: nn.Module
     _logger = logging.getLogger(__name__)
 
+    transform = None
+
     @abstractmethod
     def predict(self, img) -> Dict:
         pass

@@ -2,11 +2,11 @@ import os
 from pathlib import Path
 
 import torch
+from torch import tensor, Tensor
 from torch.autograd import Variable
 from torch.nn import functional
 from torchvision import models, transforms
 
-from tagger import MODELS_BASE_PATH
 from tagger.model.abstract_model_handler import AbstractModelHandler
 
 MODEL_BASE_NAME = 'places365.pth.tar'
@@ -39,25 +39,26 @@ class Places365Handler(AbstractModelHandler):
         self._model_path: str = model_path
         self._classes = load_classes(Path(model_path).parent.absolute())
 
-    def predict(self, image_data):
+        self.transform = centre_crop
+
+    def predict(self, image_data: Tensor):
         if not self._model_loaded:
             self._logger.warning("Model is not loaded.")
             return None
 
-        input_img = Variable(centre_crop(image_data).unsqueeze(0))
+        # input_img = Variable(centre_crop(image_data).unsqueeze(0))
 
         if torch.cuda.is_available():
-            input_img = input_img.to('cuda')
-            # self._model.to('cuda')
+            image_data = image_data.to('cuda')
 
-        logit = self._model.forward(input_img)
+        logit = self._model.forward(image_data)
         h_x = functional.softmax(logit, 1).data.squeeze()
         probs, idx = h_x.sort(0, True)
 
-        res = {self._model_name: {}}
+        res = {}
 
         for i in range(0, 5):
-            res[self._model_name][self._classes[idx[i]]] = '{:.3f}'.format(probs[i])
+            res[self._classes[idx[i]]] = '{:.3f}'.format(probs[i])
 
         return res
 
