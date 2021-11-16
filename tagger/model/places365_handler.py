@@ -2,12 +2,12 @@ import os
 from pathlib import Path
 
 import torch
-from torch import tensor, Tensor
-from torch.autograd import Variable
+from torch import Tensor
 from torch.nn import functional
-from torchvision import models, transforms
+from torchvision import models
 
 from tagger.model.abstract_model_handler import AbstractModelHandler
+from tagger.utils import centre_crop
 
 MODEL_BASE_NAME = 'places365.pth.tar'
 
@@ -21,14 +21,6 @@ def load_classes(classes_path):
             classes.append(line.strip().split(' ')[0][3:])
     classes = tuple(classes)
     return classes
-
-
-centre_crop = transforms.Compose([
-    transforms.Resize((256, 256)),
-    transforms.CenterCrop(224),
-    transforms.ToTensor(),
-    transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-])
 
 
 class Places365Handler(AbstractModelHandler):
@@ -77,3 +69,4 @@ class Places365Handler(AbstractModelHandler):
 
         self._model_loaded = True
         self._model = model
+        self._model.eval()

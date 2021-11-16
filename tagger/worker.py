@@ -1,13 +1,11 @@
 import logging
-import os
 import threading
 from typing import Dict
 
 import torch
-from PIL import Image
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import DataLoader
 
-from tagger import DATA_BASE_PATH, utils
+from tagger import utils
 from tagger.model.abstract_model_handler import AbstractModelHandler
 
 

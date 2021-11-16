@@ -1,20 +1,34 @@
 {
     "./data/IMG_20190215_143254591.jpg": {
         "resnet50_places365.pth.tar": {
-            "yard": "0.013",
-            "arch": "0.012",
-            "museum/indoor": "0.011",
-            "building_facade": "0.011",
-            "plaza": "0.010"
+            "campus": "0.131",
+            "courtyard": "0.101",
+            "hospital": "0.080",
+            "yard": "0.064",
+            "lawn": "0.060"
+        },
+        "EfficientNet_B7_ImageNet": {
+            "crane": "14.724",
+            "park bench": "7.523",
+            "balloon": "6.591",
+            "swing": "3.892",
+            "greenhouse, nursery, glasshouse": "3.764"
         }
     },
     "./data/2048-1536-max.jpg": {
         "resnet50_places365.pth.tar": {
-            "arch": "0.013",
-            "building_facade": "0.012",
-            "plaza": "0.012",
-            "museum/indoor": "0.011",
-            "campus": "0.010"
+            "church/outdoor": "0.372",
+            "mosque/outdoor": "0.340",
+            "tower": "0.085",
+            "palace": "0.031",
+            "embassy": "0.024"
+        },
+        "EfficientNet_B7_ImageNet": {
+            "monastery": "64.268",
+            "castle": "7.831",
+            "palace": "3.980",
+            "lakeside, lakeshore": "2.225",
+            "church, church building": "1.862"
         }
     }
 }
