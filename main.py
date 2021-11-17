@@ -1,7 +1,6 @@
 from torch.utils.data import DataLoader
-from torchvision import datasets
 
-from tagger import utils, DATA_BASE_PATH
+from tagger import utils
 from tagger.dataset.photo_dataset import PhotoDataset
 from tagger.model.model_register import ModelRegister
 from tagger.worker import Worker
@@ -26,3 +25,5 @@ for model_handler in model_register.list_models():
 
 for worker in workers:
     worker.join()
+
+# get_location()

@@ -3,3 +3,5 @@ flask-restx
 torch
 torchvision
 filetype
+reverse-geocoder
+GPSPhoto
