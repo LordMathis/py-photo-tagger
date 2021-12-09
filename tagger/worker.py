@@ -6,19 +6,22 @@ import torch
 from torch.utils.data import DataLoader
 
 from tagger import utils
+from tagger.db.mongo_client import populate_tag_list
+from tagger.db.schema import PhotoDocument, TagDocument, ModelDocument
 from tagger.model.abstract_model_handler import AbstractModelHandler
 
 
 class Worker(threading.Thread):
 
-    def __init__(self, model_handler: AbstractModelHandler, loader: DataLoader, photo_tags: Dict = None):
+    def __init__(self, model_handler: AbstractModelHandler, loader: DataLoader):
         super().__init__()
         self._logger = logging.getLogger(__name__)
         self._model_handler = model_handler
         self._model_name = model_handler.get_model_name()
-        self._photo_tags = photo_tags if photo_tags is not None else {}
 
         self._loader = loader
+
+        populate_tag_list(model_handler.get_classes())
 
     def run(self) -> None:
         with torch.no_grad():
@@ -26,8 +29,14 @@ class Worker(threading.Thread):
                 filepath = filepath[0]
                 prediction = self._model_handler.predict(image)
 
-                if filepath not in self._photo_tags:
-                    self._photo_tags[filepath] = {}
-                self._photo_tags[filepath][self._model_name] = prediction
+                photo = PhotoDocument.objects(filepath=filepath).first()
+                if photo is None:
+                    photo = PhotoDocument(filepath=filepath, models={})
+                    model = ModelDocument(name=self._model_name)
+                else:
+                    model = photo.models.get(self._model_name, ModelDocument(name=self._model_name))
 
-        utils.write_json_file('./taggs.json', self._photo_tags)
+                tags = [TagDocument(name=name, probability=prob) for (name, prob) in prediction.items()]
+                model.tags = tags
+                photo.models[self._model_name] = model
+                photo.save()

@@ -1,6 +1,6 @@
 import logging
 from abc import abstractmethod
-from typing import Dict
+from typing import Dict, List
 
 from torch import nn
 
@@ -11,6 +11,7 @@ class AbstractModelHandler:
     _model_loaded: bool = False
     _model: nn.Module
     _logger = logging.getLogger(__name__)
+    _classes: Dict[int, str]
 
     transform = None
 
@@ -24,3 +25,6 @@ class AbstractModelHandler:
 
     def get_model_name(self) -> str:
         return self._model_name
+
+    def get_classes(self) -> Dict[int, str]:
+        return self._classes

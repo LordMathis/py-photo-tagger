@@ -15,18 +15,20 @@ MODEL_BASE_NAME = 'places365.pth.tar'
 def load_classes(classes_path):
     # load the class label
     file_name = os.path.join(classes_path, 'categories_places365.txt')
-    classes = []
+    classes = {}
     with open(file_name) as class_file:
         for line in class_file:
-            classes.append(line.strip().split(' ')[0][3:])
-    classes = tuple(classes)
+            class_line = line.strip().split(' ')
+            class_idx = int(class_line[1])
+            class_name = class_line[0][3:]
+            classes[class_idx] = class_name
     return classes
 
 
 class Places365Handler(AbstractModelHandler):
 
     def __init__(self, model_path: str):
-        self._model_name: str = model_path.split('/')[-1]
+        self._model_name: str = model_path.split('/')[-1].split('.')[0]
         self._model_arch: str = self._model_name.split('_')[0]
         self._model_path: str = model_path
         self._classes = load_classes(Path(model_path).parent.absolute())
@@ -38,8 +40,6 @@ class Places365Handler(AbstractModelHandler):
             self._logger.warning("Model is not loaded.")
             return None
 
-        # input_img = Variable(centre_crop(image_data).unsqueeze(0))
-
         if torch.cuda.is_available():
             image_data = image_data.to('cuda')
 
@@ -50,7 +50,7 @@ class Places365Handler(AbstractModelHandler):
         res = {}
 
         for i in range(0, 5):
-            res[self._classes[idx[i]]] = '{:.3f}'.format(probs[i])
+            res[self._classes[idx[i].item()]] = probs[i]  # '{:.3f}'.format(probs[i])
 
         return res
 
