@@ -25,6 +25,7 @@ class Worker(threading.Thread):
             for batch_idx, (image, filepath) in enumerate(self._loader):
                 filepath = filepath[0]
                 prediction = self._model_handler.predict(image)
+
                 if filepath not in self._photo_tags:
                     self._photo_tags[filepath] = {}
                 self._photo_tags[filepath][self._model_name] = prediction
