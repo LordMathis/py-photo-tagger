@@ -3,7 +3,7 @@ from torch.utils.data import DataLoader
 from tagger.dataset.photo_dataset import PhotoDataset
 from tagger.db.mongo_client import init_db
 from tagger.model.model_register import ModelRegister
-from tagger.reverse_geocode import get_location
+from tagger.geolocate import get_location, geolocate_all
 from tagger.worker import Worker
 
 
@@ -12,6 +12,7 @@ def main():
     model_register.find_all_models()
 
     init_db()
+    geolocate_all()
 
     workers = []
     for model_handler in model_register.list_models():
@@ -27,5 +28,4 @@ def main():
 
 
 if __name__ == '__main__':
-    # main()
-    get_location()
+    main()

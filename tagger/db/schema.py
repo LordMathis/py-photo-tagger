@@ -18,6 +18,10 @@ class ModelDocument(EmbeddedDocument):
 class PhotoDocument(Document):
     filepath = StringField(required=True, primary_key=True)
     models = MapField(EmbeddedDocumentField(ModelDocument))
+    latitude = FloatField()
+    longitude = FloatField()
+    city = StringField()
+    country = StringField()
 
 
 class PossibleTag(Document):

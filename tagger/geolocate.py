@@ -1,9 +1,10 @@
 import os
 
 import exifread
-import reverse_geocoder
+import reverse_geocode
 
 from tagger import DATA_BASE_PATH
+from tagger.db.schema import PhotoDocument
 
 
 def __convert_to_degress(value):
@@ -21,9 +22,9 @@ def __convert_to_degress(value):
 
 
 def _get_gps_coords(filepath):
-    '''
+    """
     returns gps data if present other wise returns empty dictionary
-    '''
+    """
     with open(filepath, 'rb') as f:
         tags = exifread.process_file(f)
         latitude = tags.get('GPS GPSLatitude')
@@ -48,15 +49,30 @@ def _get_gps_coords(filepath):
         return lat_value, lon_value
 
 
-def get_location():
+def get_location(filepath):
+    coords = _get_gps_coords(filepath)
+    if coords:
+        location = reverse_geocode.get(coords)
+        return {
+            "latitude": coords[0],
+            "longitude": coords[1],
+            "city": location["city"],
+            "country": location["country"]
+        }
+
+
+def geolocate_all():
     for path, _, files in os.walk(DATA_BASE_PATH):
         for file in files:
             img_path = os.path.join(path, file)
-            coords = _get_gps_coords(img_path)
-            location = ""
-            if coords:
-                location = reverse_geocoder.search(coords)
-            print(img_path)
-            print(coords)
-            print(location)
-            print()
+            photo = PhotoDocument.objects(filepath=img_path).first()
+            if photo is None:
+                photo = PhotoDocument(filepath=img_path)
+
+            res = get_location(img_path)
+            if res:
+                photo.latitude = res['latitude']
+                photo.longitude = res['longitude']
+                photo.city = res['city']
+                photo.country = res['country']
+                photo.save()
