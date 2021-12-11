@@ -4,5 +4,4 @@ torch
 torchvision
 filetype
 reverse-geocoder
-GPSPhoto
 mongoengine
