@@ -18,8 +18,7 @@ def find_all_images():
 
 
 class PhotoDataset(Dataset):
-    def __init__(self, transform=None):
-        self.transform = transform
+    def __init__(self):
         self._imgs = find_all_images()
 
     def __len__(self):
@@ -28,6 +27,4 @@ class PhotoDataset(Dataset):
     def __getitem__(self, idx):
         img_path = self._imgs[idx]
         image = Image.open(img_path)
-        if self.transform:
-            image = self.transform(image)
         return image, img_path

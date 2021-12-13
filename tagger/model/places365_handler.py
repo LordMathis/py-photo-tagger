@@ -3,6 +3,7 @@ from pathlib import Path
 
 import torch
 from torch import Tensor
+from PIL.Image import Image
 from torch.nn import functional
 from torchvision import models
 
@@ -35,10 +36,12 @@ class Places365Handler(AbstractModelHandler):
 
         self.transform = centre_crop
 
-    def predict(self, image_data: Tensor):
+    def predict(self, image: Image):
         if not self._model_loaded:
             self._logger.warning("Model is not loaded.")
             return None
+
+        image_data = self.transform(image)
 
         if torch.cuda.is_available():
             image_data = image_data.to('cuda')
