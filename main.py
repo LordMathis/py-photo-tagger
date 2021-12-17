@@ -1,12 +1,15 @@
-import threading
+from queue import Queue
+from typing import List
 
-from torch.utils.data import DataLoader
+from watchdog.observers.inotify import InotifyObserver
 
-from tagger.dataset.photo_dataset import PhotoDataset
+from tagger import DATA_BASE_PATH
+from tagger.dataset.dataset_handler import DatasetHandler
+from tagger.dataset.dataset_worker import DatasetWorker
 from tagger.db.mongo_client import init_db
-from tagger.geolocate import geolocate_all
+from tagger.db.mongo_worker import MongoWorker
 from tagger.model.model_register import ModelRegister
-from tagger.worker import Worker
+from tagger.model.model_worker import ModelWorker
 
 
 def main():
@@ -14,23 +17,38 @@ def main():
     model_register.find_all_models()
 
     init_db()
-    # geolocate_all()
 
-    workers = []
+    threads = []
+
+    input_queues: List[Queue] = []
+    result_queue: Queue = Queue()
+
+    mongo_worker = MongoWorker(result_queue)
+    mongo_worker.start()
+    threads.append(mongo_worker)
 
     for model_handler in model_register.list_models():
-        dataset = PhotoDataset(model_handler.transform)
-        loader = DataLoader(dataset)
+        input_queue = Queue()
+        input_queues.append(input_queue)
 
-        worker = Worker(model_handler, loader)
+        worker = ModelWorker(model_handler, input_queue, result_queue)
         worker.start()
-        workers.append(worker)
+        threads.append(worker)
 
-    th = threading.Thread(target=geolocate_all)
-    th.start()
-    workers.append(th)
+    dataset_worker = DatasetWorker(input_queues)
+    dataset_worker.start()
+    threads.append(dataset_worker)
 
-    for worker in workers:
+    observer = InotifyObserver()
+    observer.schedule(DatasetHandler, DATA_BASE_PATH, recursive=True)
+    observer.start()
+    threads.append(observer)
+
+    # th = threading.Thread(target=geolocate_all)
+    # th.start()
+    # threads.append(th)
+
+    for worker in threads:
         worker.join()
 
 

@@ -6,3 +6,4 @@ filetype
 reverse-geocode
 exifread
 mongoengine
+watchdog
