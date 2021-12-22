@@ -17,19 +17,20 @@ class AbstractModelHandler:
 
     transform = None
 
-    def process(self, img):
+    def process(self, image):
 
         if not self._loaded:
             self.load()
 
-        img_tensor = torch.from_numpy(img)
-        image = img_tensor.unsqueeze(0)
+        if self.transform:
+            image = self.transform(image)
+        else:
+            image = torch.from_numpy(image)
+
+        image = image.unsqueeze(0)
 
         if torch.cuda.is_available():
             image = image.to('cuda')
-
-        if self.transform:
-            image = self.transform(image)
 
         return self.predict(image)
 

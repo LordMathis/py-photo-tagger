@@ -3,6 +3,7 @@ import json
 from torchvision import transforms
 
 centre_crop = transforms.Compose([
+    transforms.ToPILImage(),
     transforms.Resize((256, 256)),
     transforms.CenterCrop(224),
     transforms.ToTensor(),
