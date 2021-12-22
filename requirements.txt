@@ -7,3 +7,5 @@ reverse-geocode
 exifread
 mongoengine
 watchdog
+opencv-python
+numpy

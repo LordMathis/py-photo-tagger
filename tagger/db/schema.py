@@ -16,7 +16,8 @@ class ModelDocument(EmbeddedDocument):
 
 
 class PhotoDocument(Document):
-    filepath = StringField(required=True, primary_key=True)
+    hash = StringField(required=True, primary_key=True)
+    filepath = StringField(required=True)
     models = MapField(EmbeddedDocumentField(ModelDocument))
     latitude = FloatField()
     longitude = FloatField()

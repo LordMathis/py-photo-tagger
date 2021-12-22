@@ -23,14 +23,11 @@ class ImageNetHandler(AbstractModelHandler):
         if torch.cuda.is_available():
             self._model.cuda()
         self._model.eval()
+        self._loaded = True
 
-    def predict(self, image: Image) -> Dict:
-        image_data = self.transform(image).unsqueeze(0)
-        if torch.cuda.is_available():
-            image_data = image_data.to('cuda')
+    def predict(self, image: torch.Tensor) -> Dict:
 
-        out = self._model(image_data)
-
+        out = self._model(image)
         _, indices = torch.sort(out, descending=True)
         percentage = functional.softmax(out, dim=1)[0] * 100
 

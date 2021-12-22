@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+from typing import Dict
 
 import torch
 from torch import Tensor
@@ -36,17 +37,9 @@ class Places365Handler(AbstractModelHandler):
 
         self.transform = centre_crop
 
-    def predict(self, image: Image):
-        if not self._model_loaded:
-            self._logger.warning("Model is not loaded.")
-            return None
+    def predict(self, image: torch.Tensor) -> Dict:
 
-        image_data = self.transform(image).unsqueeze(0)
-
-        if torch.cuda.is_available():
-            image_data = image_data.to('cuda')
-
-        logit = self._model.forward(image_data)
+        logit = self._model.forward(image)
         h_x = functional.softmax(logit, 1).data.squeeze()
         probs, idx = h_x.sort(0, True)
 
@@ -73,3 +66,4 @@ class Places365Handler(AbstractModelHandler):
         self._model_loaded = True
         self._model = model
         self._model.eval()
+        self._loaded = True
