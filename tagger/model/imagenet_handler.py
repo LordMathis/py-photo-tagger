@@ -25,7 +25,7 @@ class ImageNetHandler(AbstractModelHandler):
         self._model.eval()
 
     def predict(self, image: Image) -> Dict:
-        image_data = self.transform(image)
+        image_data = self.transform(image).unsqueeze(0)
         if torch.cuda.is_available():
             image_data = image_data.to('cuda')
 

@@ -41,7 +41,7 @@ class Places365Handler(AbstractModelHandler):
             self._logger.warning("Model is not loaded.")
             return None
 
-        image_data = self.transform(image)
+        image_data = self.transform(image).unsqueeze(0)
 
         if torch.cuda.is_available():
             image_data = image_data.to('cuda')

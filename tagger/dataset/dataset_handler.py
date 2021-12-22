@@ -5,18 +5,18 @@ import logging
 from queue import Queue
 from typing import List
 
-import PIL.Image
 from PIL import Image
 from watchdog.events import FileSystemEventHandler, FileSystemEvent
 
 
 def process_image(img_path: str, input_queues: List[Queue]):
     try:
-        image: PIL.Image.Image = Image.open(img_path)
+        image: Image.Image = Image.open(img_path)
+        image.verify()
         for queue in input_queues:
             queue.put((img_path, image))
     except IOError:
-        logging.getLogger(__name__).exception("Exception reading image file")
+        logging.getLogger(__name__).exception("Exception reading image file %s" % img_path)
 
 
 class DatasetHandler(FileSystemEventHandler):

@@ -3,10 +3,8 @@ import threading
 from queue import Queue
 
 import torch
-from torch.utils.data import DataLoader
 
 from tagger.db.mongo_client import populate_tag_list
-from tagger.db.schema import PhotoDocument, TagDocument, ModelDocument
 from tagger.model.abstract_model_handler import AbstractModelHandler
 
 
