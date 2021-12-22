@@ -13,11 +13,12 @@ from tagger.model.abstract_model_handler import AbstractModelHandler
 
 class ModelWorker(threading.Thread):
 
-    def __init__(self, model_handler: AbstractModelHandler, input_queue: Queue):
+    def __init__(self, model_handler: AbstractModelHandler, input_queue: Queue, thread_event: threading.Event):
         super().__init__()
         self._logger = logging.getLogger(__name__)
         self._model_handler = model_handler
         self._model_name = model_handler.get_model_name()
+        self._event = thread_event
 
         self._input_queue = input_queue
 
@@ -26,9 +27,9 @@ class ModelWorker(threading.Thread):
     def run(self) -> None:
         with torch.no_grad():
 
-            while True:
+            while not self._event.is_set():
 
-                photo, filepath, img_bytes = self._input_queue.get()
+                photo, filepath, image = self._input_queue.get()
 
                 if self._model_name in photo.models:
                     continue

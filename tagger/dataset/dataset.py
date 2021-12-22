@@ -10,7 +10,6 @@ from typing import List
 
 import cv2
 import numpy as np
-import torch
 from watchdog.events import FileSystemEventHandler, FileSystemEvent
 
 from tagger import DATA_BASE_PATH
@@ -57,13 +56,18 @@ class DatasetHandler(FileSystemEventHandler):
 
 class DatasetWorker(threading.Thread):
 
-    def __init__(self, input_queues: List[Queue]):
+    def __init__(self, input_queues: List[Queue], thread_event: threading.Event):
         super().__init__()
 
         self._input_queues = input_queues
+        self._event = thread_event
 
     def run(self) -> None:
         for path, _, files in os.walk(DATA_BASE_PATH):
             for file in files:
+
+                if self._event.is_set():
+                    return
+
                 img_path = os.path.join(path, file)
                 process_image(img_path, self._input_queues)
