@@ -66,4 +66,3 @@ class Places365Handler(AbstractModelHandler):
         self._model_loaded = True
         self._model = model
         self._model.eval()
-        self._loaded = True

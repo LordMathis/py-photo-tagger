@@ -1,8 +1,6 @@
 from typing import Dict
 
-import PIL
 import torch
-from PIL.Image import Image
 from torch.nn import functional
 from torchvision import models
 
@@ -23,7 +21,7 @@ class ImageNetHandler(AbstractModelHandler):
         if torch.cuda.is_available():
             self._model.cuda()
         self._model.eval()
-        self._loaded = True
+        self._model_loaded = True
 
     def predict(self, image: torch.Tensor) -> Dict:
 

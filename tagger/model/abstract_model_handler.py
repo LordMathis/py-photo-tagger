@@ -13,13 +13,12 @@ class AbstractModelHandler:
     _model: nn.Module
     _logger = logging.getLogger(__name__)
     _classes: Dict[int, str]
-    _loaded: bool = False
 
     transform = None
 
     def process(self, image):
 
-        if not self._loaded:
+        if not self._model_loaded:
             self.load()
 
         if self.transform:
