@@ -1,4 +1,5 @@
 import logging
+import queue
 import threading
 from queue import Queue
 
@@ -9,6 +10,7 @@ import torch
 from tagger.db.mongo_client import populate_tag_list
 from tagger.db.schema import ModelDocument, TagDocument
 from tagger.model.abstract_model_handler import AbstractModelHandler
+from tagger.utils import logger
 
 
 class ModelWorker(threading.Thread):
@@ -29,15 +31,21 @@ class ModelWorker(threading.Thread):
 
             while not self._event.is_set():
 
-                photo, filepath, image = self._input_queue.get()
+                try:
+                    photo, filepath, image = self._input_queue.get(timeout=.1)
 
-                if self._model_name in photo.models:
-                    continue
+                    if self._model_name in photo.models:
+                        logger.info("File %s already tagged by model %s. Skipping" % (filepath, self._model_name))
+                        continue
 
-                prediction = self._model_handler.process(image)
+                    logger.info("Running prediction on file %s by model %s" % (filepath, self._model_name))
+                    prediction = self._model_handler.process(image)
 
-                model = ModelDocument(name=self._model_name)
-                tags = [TagDocument(name=name, probability=prob) for (name, prob) in prediction.items()]
-                model.tags = tags
-                photo.models[self._model_name] = model
-                photo.save()
+                    model = ModelDocument(name=self._model_name)
+                    tags = [TagDocument(name=name, probability=prob) for (name, prob) in prediction.items()]
+                    model.tags = tags
+                    photo.models[self._model_name] = model
+                    photo.save()
+
+                except queue.Empty:
+                    pass
