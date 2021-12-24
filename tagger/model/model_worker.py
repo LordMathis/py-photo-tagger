@@ -3,8 +3,6 @@ import queue
 import threading
 from queue import Queue
 
-import cv2
-import numpy as np
 import torch
 
 from tagger.db.mongo_client import populate_tag_list
@@ -28,9 +26,7 @@ class ModelWorker(threading.Thread):
 
     def run(self) -> None:
         with torch.no_grad():
-
             while not self._event.is_set():
-
                 try:
                     photo, filepath, image = self._input_queue.get(timeout=.1)
 
@@ -46,6 +42,5 @@ class ModelWorker(threading.Thread):
                     model.tags = tags
                     photo.models[self._model_name] = model
                     photo.save()
-
                 except queue.Empty:
                     pass

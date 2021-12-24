@@ -57,7 +57,8 @@ def main(watch: bool = False, ):
 
     if watch:
         observer = InotifyObserver()
-        observer.schedule(DatasetHandler, DATA_BASE_PATH, recursive=True)
+        handler = DatasetHandler(input_queues)
+        observer.schedule(handler, DATA_BASE_PATH, recursive=True)
         observer.start()
         threads.append(observer)
         logger.info("Started file system watchdog")

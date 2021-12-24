@@ -14,11 +14,12 @@ from watchdog.events import FileSystemEventHandler, FileSystemEvent
 
 from tagger import DATA_BASE_PATH
 from tagger.db.schema import PhotoDocument
-from tagger.geolocate import get_location
+from tagger.utils import logger, get_location
 
 
 def process_image(img_path: str, input_queues: List[Queue]):
     try:
+        logger.info("Processing file %s" % img_path)
         with open(img_path, "rb") as f:
             img_bytes = f.read()
             img_hash = hashlib.sha256(img_bytes).hexdigest()
@@ -40,7 +41,7 @@ def process_image(img_path: str, input_queues: List[Queue]):
             for queue in input_queues:
                 queue.put((photo, img_path, image))
     except IOError:
-        logging.getLogger(__name__).exception("Exception reading image file %s" % img_path)
+        logger.exception("Exception reading image file %s" % img_path)
 
 
 class DatasetHandler(FileSystemEventHandler):
@@ -51,6 +52,7 @@ class DatasetHandler(FileSystemEventHandler):
     def on_any_event(self, event: FileSystemEvent):
         if event.is_directory:
             return
+        logger.info("Received event %s, processing file" % event.event_type)
         process_image(event.src_path, self._input_queues)
 
 
