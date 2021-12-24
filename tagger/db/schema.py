@@ -1,29 +1,29 @@
 # Copyright (c) Konica Minolta Business Solutions. All Rights Reserved.
 # Unauthorized copying of this file, via any medium is strictly prohibited.
 # Proprietary and confidential.
-from mongoengine import Document, StringField, FloatField, ListField, ReferenceField, MapField, EmbeddedDocument, \
+from mongoengine import Document, StringField, FloatField, ListField, EmbeddedDocument, \
     EmbeddedDocumentField
 
 
-class TagDocument(EmbeddedDocument):
-    name = StringField(required=True)
+class TagSchema(EmbeddedDocument):
+    value = StringField(required=True)
     probability = FloatField(required=True)
+    model_name = StringField(required=True)
 
 
-class ModelDocument(EmbeddedDocument):
-    name = StringField(required=True)
-    tags = ListField(EmbeddedDocumentField(TagDocument))
-
-
-class PhotoDocument(Document):
-    hash = StringField(required=True, primary_key=True)
-    filepath = StringField(required=True)
-    models = MapField(EmbeddedDocumentField(ModelDocument))
+class LocationSchema(EmbeddedDocument):
     latitude = FloatField()
     longitude = FloatField()
     city = StringField()
     country = StringField()
 
 
-class PossibleTag(Document):
+class PhotoSchema(Document):
+    hash = StringField(required=True, primary_key=True)
+    filepath = StringField(required=True)
+    tags = ListField(EmbeddedDocumentField(TagSchema))
+    location = EmbeddedDocument(LocationSchema)
+
+
+class PossibleTagSchema(Document):
     name = StringField(required=True, primary_key=True)

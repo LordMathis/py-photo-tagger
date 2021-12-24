@@ -2,7 +2,6 @@
 # Unauthorized copying of this file, via any medium is strictly prohibited.
 # Proprietary and confidential.
 import hashlib
-import logging
 import os
 import threading
 from queue import Queue
@@ -13,7 +12,7 @@ import numpy as np
 from watchdog.events import FileSystemEventHandler, FileSystemEvent
 
 from tagger import DATA_BASE_PATH
-from tagger.db.schema import PhotoDocument
+from tagger.db.schema import PhotoSchema
 from tagger.utils import logger, get_location
 
 
@@ -24,16 +23,18 @@ def process_image(img_path: str, input_queues: List[Queue]):
             img_bytes = f.read()
             img_hash = hashlib.sha256(img_bytes).hexdigest()
 
-            photo = PhotoDocument.objects(hash=img_hash).first()
+            photo = PhotoSchema.objects(hash=img_hash).first()
             if photo is None:
-                photo = PhotoDocument(hash=img_hash, filepath=img_path, models={})
+                photo = PhotoSchema(hash=img_hash, filepath=img_path, tags=[], location=None)
 
-            img_loc = get_location(f)
-            if img_loc:
-                photo.latitude = img_loc['latitude']
-                photo.longitude = img_loc['longitude']
-                photo.city = img_loc['city']
-                photo.country = img_loc['country']
+            if photo.location is None:
+                img_loc = get_location(f)
+                if img_loc:
+                    photo.latitude = img_loc['latitude']
+                    photo.longitude = img_loc['longitude']
+                    photo.city = img_loc['city']
+                    photo.country = img_loc['country']
+                    photo = photo.save()
 
             np_arr = np.frombuffer(img_bytes, np.uint8)
             image = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)

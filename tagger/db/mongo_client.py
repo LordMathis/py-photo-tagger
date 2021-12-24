@@ -6,7 +6,7 @@ from typing import Dict
 from mongoengine import connect
 
 from tagger import DB_HOST, DB_PORT, DB_NAME
-from tagger.db.schema import PossibleTag
+from tagger.db.schema import PossibleTagSchema
 
 
 def init_db():
@@ -15,4 +15,4 @@ def init_db():
 
 def populate_tag_list(tags: Dict[int, str]):
     for t in tags.values():
-        PossibleTag(name=t).save()
+        PossibleTagSchema(name=t).save()

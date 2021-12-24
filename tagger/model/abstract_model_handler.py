@@ -2,6 +2,7 @@ import logging
 from abc import abstractmethod
 from typing import Dict, List
 
+import numpy as np
 import torch
 from torch import nn
 
@@ -16,7 +17,7 @@ class AbstractModelHandler:
 
     transform = None
 
-    def process(self, image):
+    def process(self, image: np.ndarray) -> Dict:
 
         if not self._model_loaded:
             self.load()
