@@ -8,11 +8,19 @@ from typing import List
 from watchdog.observers.inotify import InotifyObserver
 
 from tagger import DATA_BASE_PATH
+from tagger.config import init_config
 from tagger.dataset.dataset import DatasetHandler, DatasetWorker
 from tagger.db.mongo_client import init_db
 from tagger.model.model_register import ModelRegister
 from tagger.model.model_worker import ModelWorker
 from tagger.utils import logger
+
+parser = argparse.ArgumentParser(description='py-photo-tagger cli arguments')
+parser.add_argument('-w', '--watch', dest='watch', action='store_true', help='Watch filesystem for changes')
+parser.add_argument('-c', '--config', dest='config', help='Model config file')
+
+main_event = threading.Event()
+thread_event = threading.Event()
 
 
 def stop(threads):
@@ -30,13 +38,14 @@ def signal_handler(signum, frame):
     main_event.set()
 
 
-def main(watch: bool = False, ):
+def main(watch: bool = False, config_file_path: str = './config.yaml'):
 
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
 
-    model_register = ModelRegister()
-    model_register.find_all_models()
+    config = init_config(config_file_path)
+
+    model_register = ModelRegister(config)
 
     init_db()
 
@@ -77,13 +86,7 @@ def main(watch: bool = False, ):
         stop(threads)
 
 
-parser = argparse.ArgumentParser(description='py-photo-tagger cli arguments')
-parser.add_argument('-w', '--watch', dest='watch', action='store_true', help='Watch filesystem for changes')
-
-main_event = threading.Event()
-thread_event = threading.Event()
-
 if __name__ == '__main__':
     args = parser.parse_args()
 
-    main(args.watch)
+    main(args.watch, args.config)

@@ -3,12 +3,9 @@ from pathlib import Path
 from typing import Dict
 
 import torch
-from torch import Tensor
-from PIL.Image import Image
 from torch.nn import functional
 from torchvision import models
 
-from tagger.model.abstract_model_handler import AbstractModelHandler
 from tagger.utils import centre_crop
 
 MODEL_BASE_NAME = 'places365.pth.tar'
@@ -27,15 +24,18 @@ def load_classes(classes_path):
     return classes
 
 
-class Places365Handler(AbstractModelHandler):
+class Places365Handler:
 
-    def __init__(self, model_path: str):
-        self._model_name: str = model_path.split('/')[-1].split('.')[0]
-        self._model_arch: str = self._model_name.split('_')[0]
-        self._model_path: str = model_path
-        self._classes = load_classes(Path(model_path).parent.absolute())
+    def __init__(self, config):
+        self.model_name: str = config.model_path.split('/')[-1].split('.')[0]
+
+        self._model_arch: str = self.model_name.split('_')[0]
+        self._model_path: str = config.model_path
+        self.classes = load_classes(Path(config.model_path).parent.absolute())
 
         self.transform = centre_crop
+
+        self._load()
 
     def predict(self, image: torch.Tensor) -> Dict:
 
@@ -50,7 +50,7 @@ class Places365Handler(AbstractModelHandler):
 
         return res
 
-    def load(self):
+    def _load(self):
         if self._model_loaded:
             return
 

@@ -4,20 +4,22 @@ import torch
 from torch.nn import functional
 from torchvision import models
 
+from tagger.config import ModelConfig
 from tagger.dataset import imagenet_classes
-from tagger.model.abstract_model_handler import AbstractModelHandler
 from tagger.utils import centre_crop
 
 
-class ImageNetHandler(AbstractModelHandler):
+class ImageNetHandler:
 
-    def __init__(self):
-        self._model_name = "EfficientNet_B7_ImageNet"
-        self._model = models.efficientnet_b7(pretrained=True)
-        self._classes = imagenet_classes.classes
+    def __init__(self, config: ModelConfig):
+        self.model_name = "EfficientNet_B7_ImageNet"
+        self.model = models.efficientnet_b7(pretrained=True)
+        self.classes = imagenet_classes.classes
         self.transform = centre_crop
 
-    def load(self) -> None:
+        self._load()
+
+    def _load(self) -> None:
         if torch.cuda.is_available():
             self._model.cuda()
         self._model.eval()

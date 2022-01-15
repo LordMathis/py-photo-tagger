@@ -1,27 +1,31 @@
-import os
+import importlib.util
+import inspect
 from typing import Dict, List
 
-from tagger import MODELS_BASE_PATH
-from tagger.model.abstract_model_handler import AbstractModelHandler
-from tagger.model.imagenet_handler import ImageNetHandler
-from tagger.model.places365_handler import MODEL_BASE_NAME as PLACES365_MODEL, Places365Handler
+from tagger.config import ModelConfig
+from tagger.db.mongo_client import populate_tag_list
+from tagger.model.model_handler import ModelHandler
 
 
 class ModelRegister:
 
-    models: Dict[str, AbstractModelHandler] = {}
+    models: Dict[str, ModelHandler] = {}
 
-    def register(self, model: AbstractModelHandler):
-        model.load()
-        self.models[model.get_model_name()] = model
+    def __init__(self, models: List[ModelConfig]):
 
-    def find_all_models(self):
-        self.register(ImageNetHandler())
-        for path, dirs, files in os.walk(MODELS_BASE_PATH):
-            for file in files:
-                if PLACES365_MODEL in file:
-                    places_model = Places365Handler(os.path.join(path, file))
-                    self.register(places_model)
+        for model in models:
+            spec = importlib.util.spec_from_file_location(model.module_name, model.module_path)
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
 
-    def list_models(self) -> List[AbstractModelHandler]:
+            plugin_class = [obj for name, obj in inspect.getmembers(module, inspect.isclass) if hasattr(obj, 'predict')][0]
+            plugin_instance = plugin_class(model)
+
+            self.register(plugin_instance)
+
+    def register(self, model: ModelHandler):
+        self.models[model.model_name] = model
+        populate_tag_list(model.classes)
+
+    def list_models(self) -> List[ModelHandler]:
         return list(self.models.values())

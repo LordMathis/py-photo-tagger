@@ -9,3 +9,5 @@ mongoengine
 watchdog
 opencv-python
 numpy
+pydantic
+pyyaml
