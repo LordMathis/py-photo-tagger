@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Dict
 
 import torch
+from pydantic import BaseModel
 from torch.nn import functional
 from torchvision import models
 
@@ -24,18 +25,26 @@ def load_classes(classes_path):
     return classes
 
 
+class Places365Config(BaseModel):
+    model_path: str
+    model_arch: str
+
+
 class Places365Handler:
+    model_name: str = 'Places365'
 
-    def __init__(self, config):
-        self.model_name: str = config.model_path.split('/')[-1].split('.')[0]
+    def __init__(self, config: Dict):
 
-        self._model_arch: str = self.model_name.split('_')[0]
+        config = Places365Config(**config)
+
+        self._model_arch: str = config.model_arch
         self._model_path: str = config.model_path
         self.classes = load_classes(Path(config.model_path).parent.absolute())
 
         self.transform = centre_crop
 
-        self._load()
+        self._model = self._load()
+        self._model_loaded = True
 
     def predict(self, image: torch.Tensor) -> Dict:
 
@@ -46,7 +55,7 @@ class Places365Handler:
         res = {}
 
         for i in range(0, 5):
-            res[self._classes[idx[i].item()]] = probs[i]  # '{:.3f}'.format(probs[i])
+            res[self.classes[idx[i].item()]] = probs[i]  # '{:.3f}'.format(probs[i])
 
         return res
 
@@ -63,6 +72,4 @@ class Places365Handler:
         if torch.cuda.is_available():
             model.cuda()
 
-        self._model_loaded = True
-        self._model = model
-        self._model.eval()
+        return model

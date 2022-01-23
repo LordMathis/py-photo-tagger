@@ -45,7 +45,7 @@ def main(watch: bool = False, config_file_path: str = './config.yaml'):
 
     config = init_config(config_file_path)
 
-    model_register = ModelRegister(config)
+    model_register = ModelRegister(config.models)
 
     init_db()
 

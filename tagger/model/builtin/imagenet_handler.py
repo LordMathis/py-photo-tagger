@@ -1,29 +1,41 @@
 from typing import Dict
 
 import torch
+from pydantic import BaseModel
 from torch.nn import functional
 from torchvision import models
 
-from tagger.config import ModelConfig
 from tagger.dataset import imagenet_classes
 from tagger.utils import centre_crop
 
 
-class ImageNetHandler:
+class ImageNetConfig(BaseModel):
+    model_arch: str = "efficientnet_b1"
 
-    def __init__(self, config: ModelConfig):
-        self.model_name = "EfficientNet_B7_ImageNet"
-        self.model = models.efficientnet_b7(pretrained=True)
+
+class ImageNetHandler:
+    model_name = "ImageNet"
+
+    def __init__(self, config: Dict):
+        config = ImageNetConfig(**config)
+        self._model = self._load(config.model_arch)
+        self._model_loaded = True
+
         self.classes = imagenet_classes.classes
         self.transform = centre_crop
 
-        self._load()
+    def _load(self, model_arch):
 
-    def _load(self) -> None:
+        if not hasattr(models, model_arch.lower()):
+            return
+
+        model = getattr(models, model_arch.lower())(pretrained=True)
+
         if torch.cuda.is_available():
-            self._model.cuda()
-        self._model.eval()
-        self._model_loaded = True
+            model.cuda()
+        model.eval()
+
+        return model
 
     def predict(self, image: torch.Tensor) -> Dict:
 
@@ -34,5 +46,5 @@ class ImageNetHandler:
         res = {}
 
         for idx in indices[0][:5]:
-            res[self._classes[idx.item()]] = '{:.3f}'.format(percentage[idx].item())
+            res[self.classes[idx.item()]] = '{:.3f}'.format(percentage[idx].item())
         return res
