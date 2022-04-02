@@ -1,4 +1,3 @@
-from geoalchemy2 import Geometry
 from sqlalchemy import Column, String, Integer, ForeignKey, Float, Boolean, Date
 from sqlalchemy.orm import declarative_base, relationship
 
@@ -10,7 +9,8 @@ class Photo(Base):
 
     id = Column(String, primary_key=True)
     filepath = Column(String, nullable=False)
-    coordinates = Column(Geometry('POINT'))
+    latitude = Column(Float)
+    longitude = Column(Float)
     city = Column(String)
     country = Column(String)
 
@@ -53,6 +53,8 @@ class PhotoTag(Base):
 
 
 class ModelPhotoStatus(Base):
+
+    __tablename__ = 'model_photo_status'
 
     id = Column(Integer, primary_key=True)
     photo_id = Column(String, ForeignKey('photos.id'))
