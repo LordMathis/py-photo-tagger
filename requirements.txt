@@ -5,7 +5,8 @@ torchvision
 filetype
 reverse-geocode
 exifread
-mongoengine
 watchdog
 opencv-python
 numpy
+sqlalchemy~=1.4
+psycopg2~=2.9
