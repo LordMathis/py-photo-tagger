@@ -1,29 +1,65 @@
-# Copyright (c) Konica Minolta Business Solutions. All Rights Reserved.
-# Unauthorized copying of this file, via any medium is strictly prohibited.
-# Proprietary and confidential.
-from mongoengine import Document, StringField, FloatField, ListField, EmbeddedDocument, \
-    EmbeddedDocumentField
+from geoalchemy2 import Geometry
+from sqlalchemy import Column, String, Integer, ForeignKey, Float, Boolean, Date
+from sqlalchemy.orm import declarative_base, relationship
+
+Base = declarative_base()
 
 
-class TagSchema(EmbeddedDocument):
-    value = StringField(required=True)
-    probability = FloatField(required=True)
-    model_name = StringField(required=True)
+class Photo(Base):
+    __tablename__ = 'photos'
+
+    id = Column(String, primary_key=True)
+    filepath = Column(String, nullable=False)
+    coordinates = Column(Geometry('POINT'))
+    city = Column(String)
+    country = Column(String)
+
+    tags = relationship('PhotoTag')
+    model_status = relationship('ModelPhotoStatus')
 
 
-class LocationSchema(EmbeddedDocument):
-    latitude = FloatField()
-    longitude = FloatField()
-    city = StringField()
-    country = StringField()
+class Model(Base):
+    __tablename__ = 'models'
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False)
+    version = Column(Integer, default=1)
+
+    tags = relationship('ModelTag')
+    photos_status = relationship('ModelPhotoStatus')
 
 
-class PhotoSchema(Document):
-    hash = StringField(required=True, primary_key=True)
-    filepath = StringField(required=True)
-    tags = ListField(EmbeddedDocumentField(TagSchema))
-    location = EmbeddedDocument(LocationSchema)
+class ModelTag(Base):
+    __tablename__ = 'model_tags'
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False)
+    model_id = Column(Integer, ForeignKey('models.id'))
+
+    photo_tags = relationship('PhotoTag')
+    model = relationship('Model', back_populates='tags')
 
 
-class PossibleTagSchema(Document):
-    name = StringField(required=True, primary_key=True)
+class PhotoTag(Base):
+    __tablename__ = 'photo_tags'
+
+    id = Column(Integer, primary_key=True)
+    tag_id = Column(Integer, ForeignKey('model_tags.id'))
+    photo_id = Column(String, ForeignKey('photos.id'))
+    probability = Column(Float)
+
+    tag = relationship('ModelTag', back_populates='photo_tags')
+    photo = relationship('Photo', back_populates='tags')
+
+
+class ModelPhotoStatus(Base):
+
+    id = Column(Integer, primary_key=True)
+    photo_id = Column(String, ForeignKey('photos.id'))
+    model_id = Column(Integer, ForeignKey('models.id'))
+    status = Column(Boolean, default=False)
+    date = Column(Date)
+
+    photo = relationship('Photo', back_populates='model_status')
+    model = relationship('Model', back_populates='photos_status')
+
