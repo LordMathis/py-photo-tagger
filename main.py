@@ -9,7 +9,6 @@ from watchdog.observers.inotify import InotifyObserver
 
 from tagger import DATA_BASE_PATH
 from tagger.dataset.dataset import DatasetHandler, DatasetWorker
-from tagger.db.mongo_client import init_db
 from tagger.model.model_register import ModelRegister
 from tagger.model.model_worker import ModelWorker
 from tagger.utils import logger
@@ -37,8 +36,6 @@ def main(watch: bool = False, ):
 
     model_register = ModelRegister()
     model_register.find_all_models()
-
-    init_db()
 
     threads = []
     input_queues: List[Queue] = []
