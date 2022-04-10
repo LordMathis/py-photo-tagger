@@ -9,8 +9,8 @@ from watchdog.observers.inotify import InotifyObserver
 
 from tagger import DATA_BASE_PATH
 from tagger.dataset.dataset import DatasetHandler, DatasetWorker
-from tagger.model.model_register import ModelRegister
-from tagger.model.model_worker import ModelWorker
+from tagger.ml.model_register import ModelRegister
+from tagger.ml.model_worker import ModelWorker
 from tagger.utils import logger
 
 

@@ -1,7 +1,7 @@
 from sqlalchemy import Column, String, Integer, ForeignKey, Float, Boolean, Date
-from sqlalchemy.orm import declarative_base, relationship
+from sqlalchemy.orm import relationship
 
-Base = declarative_base()
+from tagger.db import Base
 
 
 class Photo(Base):
@@ -22,7 +22,7 @@ class Model(Base):
     __tablename__ = 'models'
 
     id = Column(Integer, primary_key=True)
-    name = Column(String, nullable=False)
+    name = Column(String, nullable=False, unique=True)
     version = Column(Integer, default=1)
 
     tags = relationship('ModelTag')

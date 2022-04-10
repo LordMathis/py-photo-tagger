@@ -9,23 +9,25 @@ from typing import List
 
 import cv2
 import numpy as np
+from sqlalchemy.orm import Session
 from watchdog.events import FileSystemEventHandler, FileSystemEvent
 
 from tagger import DATA_BASE_PATH
-from tagger.db.schema import PhotoSchema
+from tagger.db.models import Photo
 from tagger.utils import logger, get_location
 
 
-def process_image(img_path: str, input_queues: List[Queue]):
+def process_image(img_path: str, input_queues: List[Queue], session: Session):
     try:
         logger.info("Processing file %s" % img_path)
         with open(img_path, "rb") as f:
             img_bytes = f.read()
             img_hash = hashlib.sha256(img_bytes).hexdigest()
 
-            photo = PhotoSchema.objects(hash=img_hash).first()
+            photo = session.query(Photo, id=img_hash).first()
+
             if photo is None:
-                photo = PhotoSchema(hash=img_hash, filepath=img_path, tags=[], location=None)
+                photo = Photo()
 
             if photo.location is None:
                 img_loc = get_location(f)

@@ -5,7 +5,7 @@ from torch.nn import functional
 from torchvision import models
 
 from tagger.dataset import imagenet_classes
-from tagger.model.abstract_model_handler import AbstractModelHandler
+from tagger.ml.abstract_model_handler import AbstractModelHandler
 from tagger.utils import centre_crop
 
 
