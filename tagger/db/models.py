@@ -43,7 +43,7 @@ class ModelTag(Base):
 class PhotoTag(Base):
     __tablename__ = 'photo_tags'
 
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=False)
     tag_id = Column(Integer, ForeignKey('model_tags.id'))
     photo_id = Column(String, ForeignKey('photos.id'))
     probability = Column(Float)

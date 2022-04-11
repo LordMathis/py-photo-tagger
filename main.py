@@ -9,6 +9,7 @@ from watchdog.observers.inotify import InotifyObserver
 
 from tagger import DATA_BASE_PATH
 from tagger.dataset.dataset import DatasetHandler, DatasetWorker
+from tagger.db import Database
 from tagger.ml.model_register import ModelRegister
 from tagger.ml.model_worker import ModelWorker
 from tagger.utils import logger
@@ -34,7 +35,10 @@ def main(watch: bool = False, ):
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
 
-    model_register = ModelRegister()
+    db = Database('postgresql://user:example@localhost:5432/phototagger')
+    db.create_database()
+
+    model_register = ModelRegister(db)
     model_register.find_all_models()
 
     threads = []
@@ -44,17 +48,17 @@ def main(watch: bool = False, ):
         input_queue = Queue()
         input_queues.append(input_queue)
 
-        worker = ModelWorker(model_handler, input_queue, thread_event)
+        worker = ModelWorker(model_handler, input_queue, db, thread_event)
         worker.start()
         threads.append(worker)
 
-    dataset_worker = DatasetWorker(input_queues, thread_event)
+    dataset_worker = DatasetWorker(input_queues, db, thread_event)
     dataset_worker.start()
     threads.append(dataset_worker)
 
     if watch:
         observer = InotifyObserver()
-        handler = DatasetHandler(input_queues)
+        handler = DatasetHandler(input_queues, db)
         observer.schedule(handler, DATA_BASE_PATH, recursive=True)
         observer.start()
         threads.append(observer)

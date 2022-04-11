@@ -12,7 +12,6 @@ from tagger.ml.places365_handler import MODEL_BASE_NAME as PLACES365_MODEL, Plac
 
 
 class ModelRegister:
-
     models: Dict[str, AbstractModelHandler] = {}
 
     def __init__(self, db: Database):
@@ -23,17 +22,22 @@ class ModelRegister:
         with self._db.session() as sess:
             model.load()
 
-            db_model = Model()
-            db_model.name = model.get_model_name()
-            db_model.version = 1
+            db_model = sess.query(Model).filter(Model.name == model.get_model_name()).first()
 
-            sess.add(db_model)
+            if db_model is None:
+                db_model = Model()
+                db_model.name = model.get_model_name()
+                db_model.version = 1
+                sess.add(db_model)
+                sess.commit()
 
             for tag in model.get_classes().values():
-                db_tag = ModelTag()
-                db_tag.model = db_model
-                db_tag.name = tag
-                sess.add(db_tag)
+                db_tag = sess.query(ModelTag).filter(ModelTag.model == db_model).filter(ModelTag.name == tag).first()
+                if db_tag is None:
+                    db_tag = ModelTag()
+                    db_tag.model = db_model
+                    db_tag.name = tag
+                    sess.add(db_tag)
 
             self.models[model.get_model_name()] = model
             sess.commit()

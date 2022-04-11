@@ -1,4 +1,3 @@
-import logging
 import queue
 import threading
 from queue import Queue
@@ -30,14 +29,17 @@ class ModelWorker(threading.Thread):
         with torch.no_grad() and self._db.session() as sess:
             while not self._event.is_set():
                 try:
-                    photo: Photo
+                    print('Hello')
                     filepath: str
+                    img_hash: str
                     image: np.ndarray
-                    photo, filepath, image = self._input_queue.get(timeout=.1)
+                    filepath, img_hash, image = self._input_queue.get(timeout=.1)
+
+                    photo: Photo = sess.query(Photo).get(img_hash)
 
                     model: Model
                     model_status: ModelPhotoStatus
-                    model: model_status = (sess.query(Model, ModelPhotoStatus, name=self._model_name)
+                    model, model_status = (sess.query(Model, ModelPhotoStatus)
                                            .join(ModelPhotoStatus, isouter=True)
                                            .filter(Model.name == self._model_name)
                                            .filter(ModelPhotoStatus.photo == photo)

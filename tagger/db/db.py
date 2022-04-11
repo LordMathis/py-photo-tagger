@@ -3,9 +3,7 @@ from contextlib import contextmanager, AbstractContextManager
 from typing import Callable
 
 from sqlalchemy import create_engine, orm
-from sqlalchemy.orm import sessionmaker, declarative_base, Session
-
-engine = create_engine('postgresql://user:example@localhost:5432/phototagger')
+from sqlalchemy.orm import declarative_base, Session
 
 Base = declarative_base()
 
@@ -37,3 +35,6 @@ class Database:
             raise
         finally:
             session.close()
+
+    def clean(self):
+        Base.metadata.drop_all(self._engine)
